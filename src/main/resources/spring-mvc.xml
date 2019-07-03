@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--&lt;!&ndash; 开启注解扫描,只扫描Controller注解 &ndash;&gt;-->
+    <context:component-scan base-package="cn.res.controller">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- 配置视图解析器对象 -->
+    <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!-- 过滤静态资源 -->
+    <!--<mvc:resources mapping="/css/**" location="/css/"/>-->
+    <!--<mvc:resources mapping="/js/**" location="/js/"/>-->
+    <!--<mvc:resources mapping="/img/**" location="/img/"/>-->
+
+    <!-- 开启SpringMVC注解的支持 -->
+    <mvc:annotation-driven/>
+
+
+
+    <!-- 拦截器 -->
+<!--    <mvc:interceptors>
+        <mvc:interceptor>
+            &lt;!&ndash; 要拦截的具体方法 &ndash;&gt;
+            <mvc:mapping path="/study/*"/>
+            &lt;!&ndash; 不拦截的方法 &ndash;&gt;
+            &lt;!&ndash;<mvc:exclude-mapping path=""/>&ndash;&gt;
+            &lt;!&ndash; 配置拦截器对象 &ndash;&gt;
+            <bean class="cn.res.interceptor.MyInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>-->
+
+    <!-- 请求参数转换类型 -->
+
+    <!-- 配置MultipartResolver处理器 -->
+    <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8"></property>
+        &lt;!&ndash; 指定所上传文件的总大小不超过200KB,注意maxUploadSize属性的限制
+         不是针对单个文件,而是所有文件的容量之和&ndash;&gt;
+        <property name="maxUploadSize" value="104857600"/>
+        &lt;!&ndash; resolveLazily属性启用时为了推迟文件解析,以便在UploadAction中捕获文件大小异常 &ndash;&gt;
+        <property name="resolveLazily" value="true"/>
+    </bean>-->
+    <!-- 异常处理器 -->
+</beans>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- 自动扫描,将注解的类加入容器 -->
+    <context:component-scan base-package="cn.res">
+        <!--<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>-->
+        <!-- 不扫描controller -->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="systemPropertiesModeName"
+                  value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="locations">
+            <list>
+                <!-- 数据库配置-->
+                <value>classpath*:druid.properties</value>
+                <!-- 系统配置 -->
+                <!-- <value>classpath*:config.properties</value> -->
+            </list>
+        </property>
+    </bean>
+    <!-- 配置datasource,这里使用的是druid -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+        <property name="initialSize" value="${jdbc.initialSize}"></property>
+        <property name="maxActive" value="${jdbc.maxActive}"></property>
+        <property name="maxWait" value="${jdbc.maxWait}"></property>
+        <property name="validationQuery" value="SELECT 1"></property>
+        <property name="testWhileIdle" value="true"></property>
+        <property name="testOnBorrow" value="false"></property>
+        <property name="testOnReturn" value="false"></property>
+        <!-- 配置间隔多久进行一次检测,检测需要关闭空闲连接,单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000"></property>
+        <!-- 配置一个连接在池中最小生存的时间,单位是毫秒-->
+        <property name="minEvictableIdleTimeMillis" value="25200000"></property>
+        <property name="filters" value="mergeStat"></property>
+
+    </bean>
+
+    <!-- mybatis和spring的整合,不需要mybatis的配置映射文件 -->
+    <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 当接口名与xml名相同时可省略此配置 -->
+        <!--<property name="mapperLocations" value="classpath:cn/res/mapper/*Mapper.xml"/>-->
+        <property name="typeAliasesPackage" value="cn.res.domain"></property>
+    </bean>
+    <!-- DAO接口所在的报名,Spring会自动查找其下的类 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="cn.res.dao"></property>
+        <property name="sqlSessionFactoryBeanName" value="sessionFactory"></property>
+    </bean>
+
+    <!-- 事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <!-- 配置事务通知 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="insert*" propagation="REQUIRED" read-only="false"/>
+            <tx:method name="*" propagation="REQUIRED" read-only="false"/>
+            <tx:method name="transfer" propagation="REQUIRED" read-only="false"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(public * cn.res.service.impl.*.*(..))"/>
+    </aop:config>
+</beans>
